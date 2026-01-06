@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: order_mgmt_postgres
+    environment:
+      POSTGRES_DB: order_mgmt
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - order_mgmt_pgdata:/var/lib/postgresql/data
+
+volumes:
+  order_mgmt_pgdata:
