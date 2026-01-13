@@ -35,4 +35,9 @@ public class OrderController {
     public List<OrderResponse> getAll(@RequestParam(required = false) OrderStatus status) {
         return orderService.getAll(status);
     }
+
+    @PostMapping("/{id}/cancel")
+    public OrderResponse cancel(@PathVariable Long id) {
+        return orderService.cancel(id);
+    }
 }
