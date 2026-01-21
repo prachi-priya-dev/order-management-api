@@ -40,4 +40,14 @@ public class OrderController {
     public OrderResponse cancel(@PathVariable Long id) {
         return orderService.cancel(id);
     }
+    
+    @PostMapping("/{id}/pay")
+    public OrderResponse pay(@PathVariable Long id) {
+        return orderService.pay(id);
+    }
+
+    @PostMapping("/{id}/ship")
+    public OrderResponse ship(@PathVariable Long id) {
+        return orderService.ship(id);
+    }
 }

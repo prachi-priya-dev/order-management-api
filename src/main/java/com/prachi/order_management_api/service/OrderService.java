@@ -183,4 +183,60 @@ public class OrderService {
                                 order.getCreatedAt(),
                                 order.getUpdatedAt());
         }
+        
+        @Transactional
+        public OrderResponse pay(Long orderId) {
+                OffsetDateTime now = OffsetDateTime.now();
+
+                Order order = orderRepository.findByIdWithItems(orderId)
+                                .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
+
+                if (order.getStatus() != OrderStatus.CREATED) {
+                        throw new ConflictException(
+                                        "Only CREATED orders can be paid. Current status=" + order.getStatus());
+                }
+
+                for (OrderItem item : order.getItems()) {
+                        Long productId = item.getProduct().getId();
+                        Inventory inv = inventoryRepository.findByProductIdForUpdate(productId)
+                                        .orElseThrow(() -> new NotFoundException(
+                                                        "Inventory not found for product: " + productId));
+
+                        int qty = item.getQuantity();
+
+                        if (inv.getReservedQty() < qty) {
+                                throw new ConflictException(
+                                                "RESERVED_STOCK_MISMATCH for productId=" + productId +
+                                                                " reserved=" + inv.getReservedQty() + " required="
+                                                                + qty);
+                        }
+
+                        inv.setReservedQty(inv.getReservedQty() - qty);
+                        inv.setUpdatedAt(now);
+                }
+
+                order.setStatus(OrderStatus.PAID);
+                order.setUpdatedAt(now);
+
+                return toResponse(order);
+        }
+
+        @Transactional
+        public OrderResponse ship(Long orderId) {
+                OffsetDateTime now = OffsetDateTime.now();
+
+                Order order = orderRepository.findById(orderId)
+                                .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
+
+                if (order.getStatus() != OrderStatus.PAID) {
+                        throw new ConflictException(
+                                        "Only PAID orders can be shipped. Current status=" + order.getStatus());
+                }
+
+                order.setStatus(OrderStatus.SHIPPED);
+                order.setUpdatedAt(now);
+
+                return toResponse(order);
+        }
+
 }
